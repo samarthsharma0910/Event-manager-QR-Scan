@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VOLUNTEER
+}
+enum EventStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  COMPLETED
+  CANCELLED
+}
+enum RegistrationStatus {
+  ACTIVE
+  CANCELLED
+  WAITLISTED
+}
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  role Role @default(VOLUNTEER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdEvents Event[] @relation("EventCreator")
+  attendances Attendance[] @relation("CheckinVolunteer")
+  assignments EventVolunteer[]
+}
+model Event {
+  id String @id @default(cuid())
+  name String
+  slug String @unique
+  description String
+  category String
+  date DateTime
+  startTime String
+  endTime String
+  venue String
+  address String
+  capacity Int?
+  registrationOpen DateTime
+  registrationClose DateTime
+  status EventStatus @default(DRAFT)
+  partnerOrganization String?
+  createdById String
+  createdBy User @relation("EventCreator", fields:[createdById], references:[id])
+  registrations Registration[]
+  assignments EventVolunteer[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([date, status])
+}
+model Participant {
+  id String @id @default(cuid())
+  name String
+  phone String
+  email String
+  ageGroup String?
+  locality String?
+  consent Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  registrations Registration[]
+  @@unique([email, phone])
+}
+model Registration {
+  id String @id @default(cuid())
+  eventId String
+  event Event @relation(fields:[eventId], references:[id], onDelete: Cascade)
+  participantId String
+  participant Participant @relation(fields:[participantId], references:[id])
+  qrToken String @unique
+  status RegistrationStatus @default(ACTIVE)
+  registeredAt DateTime @default(now())
+  attendance Attendance?
+  @@unique([eventId, participantId])
+  @@index([eventId, status])
+}
+model Attendance {
+  id String @id @default(cuid())
+  registrationId String @unique
+  registration Registration @relation(fields:[registrationId], references:[id], onDelete: Cascade)
+  checkedInAt DateTime @default(now())
+  checkedInById String
+  checkedInBy User @relation("CheckinVolunteer", fields:[checkedInById], references:[id])
+  @@index([checkedInAt])
+}
+model EventVolunteer {
+  eventId String
+  userId String
+  event Event @relation(fields:[eventId], references:[id], onDelete: Cascade)
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  @@id([eventId, userId])
+}

@@ -1,0 +1,2 @@
+import {prisma} from '../../../../lib/prisma'; import {jsonError} from '../../../../lib/utils';
+export async function GET(_,{params}){try{const registration=await prisma.registration.findUnique({where:{id:(await params).id},include:{event:true,participant:true}});if(!registration)return jsonError('Registration not found.',404);return Response.json({registration:{id:registration.id,status:registration.status,qrToken:registration.qrToken,event:registration.event,participant:{name:registration.participant.name}}});}catch{return jsonError('Unable to load registration.',500)}}
