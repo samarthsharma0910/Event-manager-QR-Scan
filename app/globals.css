@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+/*
+ * Brand colours come from OrgSettings (set on <html> by the root layout), so the NGO can re-theme the
+ * product from Admin → Settings. Everything else is derived from those two values.
+ */
+:root {
+  --brand: #1f5d45;
+  --accent: #7faf91;
+  --c-forest: var(--brand);
+  --c-forest-dark: color-mix(in srgb, var(--brand) 78%, black);
+  --c-forest-deep: color-mix(in srgb, var(--brand) 52%, black);
+  --c-sage: var(--accent);
+  --c-mint: color-mix(in srgb, var(--accent) 16%, white);
+  --c-mint-deep: color-mix(in srgb, var(--accent) 38%, white);
+}
+
+@theme inline {
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+
+  --color-forest: var(--c-forest);
+  --color-forest-dark: var(--c-forest-dark);
+  --color-forest-deep: var(--c-forest-deep);
+  --color-sage: var(--c-sage);
+  --color-mint: var(--c-mint);
+  --color-mint-deep: var(--c-mint-deep);
+  --color-ivory: #ffffff;
+  --color-paper: #f5f7f5;
+  --color-charcoal: #1d2a23;
+  --color-muted: #5c6a62;
+  --color-line: #e6e9e5;
+  --color-line-strong: #d4d9d3;
+  --color-clay: #b3552f;
+  --color-clay-soft: #f8e9e1;
+  --color-danger: #a8402d;
+  --color-danger-soft: #fbeae6;
+  --color-amber: #8a5a10;
+  --color-amber-soft: #fbf0d9;
+
+  --shadow-lift: 0 1px 2px rgb(29 42 35 / 0.06), 0 12px 32px -12px rgb(29 42 35 / 0.18);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--color-ivory);
+  color: var(--color-charcoal);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+}
+:focus-visible {
+  outline: 2px solid var(--c-forest);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+::selection {
+  background: var(--color-mint-deep);
+}
+
+@layer components {
+  /* ---- buttons: squared-off, quiet, with a tactile press ---- */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold whitespace-nowrap transition-[background-color,box-shadow,transform,color,border-color] duration-150 select-none disabled:cursor-not-allowed disabled:opacity-55 active:translate-y-px;
+    min-height: var(--btn-h, 2.75rem);
+    padding: var(--btn-py, 0.5rem) var(--btn-px, 1.15rem);
+    font-size: var(--btn-fs, 0.9375rem);
+  }
+  .btn-primary {
+    @apply bg-forest text-white hover:bg-forest-dark;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(29 42 35 / 0.2);
+  }
+  .btn-secondary {
+    @apply border border-line-strong bg-white text-charcoal hover:border-forest/50 hover:text-forest;
+    box-shadow: 0 1px 1px rgb(29 42 35 / 0.04);
+  }
+  .btn-ghost {
+    @apply text-forest hover:bg-forest/[0.07];
+  }
+  .btn-danger {
+    @apply bg-danger text-white hover:brightness-95;
+  }
+  .btn-sm {
+    --btn-h: 2.25rem;
+    --btn-py: 0.3rem;
+    --btn-px: 0.8rem;
+    --btn-fs: 0.84375rem;
+  }
+  .btn-lg {
+    --btn-h: 3.1rem;
+    --btn-px: 1.5rem;
+    --btn-fs: 1rem;
+  }
+
+  /* ---- form controls ---- */
+  .input {
+    @apply block w-full min-h-11 rounded-[10px] border border-line-strong bg-white px-3.5 py-2.5 text-base text-charcoal transition-[border-color,box-shadow] duration-150 placeholder:text-muted/60 hover:border-forest/40 focus:border-forest focus:outline-none aria-[invalid=true]:border-danger;
+  }
+  .input:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-forest) 18%, transparent);
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-charcoal;
+  }
+  .field-error {
+    @apply mt-1.5 text-sm font-medium text-danger;
+  }
+  .hint {
+    @apply mt-1.5 text-sm text-muted;
+  }
+
+  /* ---- small status labels: dot + text rather than a filled pill ---- */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold;
+  }
+  .eyebrow {
+    @apply text-sm font-semibold text-forest;
+  }
+
+  /* ---- data tables ---- */
+  .table-wrap {
+    @apply overflow-x-auto rounded-xl border border-line bg-white;
+  }
+  .th {
+    @apply sticky top-0 whitespace-nowrap border-b border-line bg-paper px-4 py-2.5 text-left text-[0.72rem] font-semibold uppercase tracking-wide text-muted;
+  }
+  .td {
+    @apply border-b border-line/70 px-4 py-3 align-middle text-sm;
+  }
+  tbody tr {
+    @apply transition-colors duration-100;
+  }
+  tbody tr:hover > .td {
+    background: color-mix(in srgb, var(--c-mint) 55%, white);
+  }
+  tbody tr:last-child > .td {
+    border-bottom: 0;
+  }
+
+  /* ---- filter chips ---- */
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line-strong bg-white px-3.5 py-1.5 text-sm font-medium text-charcoal/80 transition-colors hover:border-forest/50 hover:text-forest;
+  }
+  .chip[aria-current="true"] {
+    @apply border-forest bg-forest text-white hover:text-white;
+  }
+
+  /* ---- surfaces ---- */
+  .surface {
+    @apply rounded-2xl border border-line bg-white;
+  }
+  .lift {
+    @apply transition-[transform,box-shadow] duration-300;
+    transition-timing-function: var(--ease-out-quint);
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+  }
+  .link-arrow {
+    @apply inline-flex min-h-10 items-center gap-1 font-semibold text-forest;
+  }
+  .link-arrow > svg {
+    @apply transition-transform duration-200;
+  }
+  .link-arrow:hover > svg {
+    transform: translateX(3px);
+  }
+}
+
+/* ---- motion ---- */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes scanline {
+  0% { transform: translateY(0); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise { animation: rise 0.6s var(--ease-out-quint) both; }
+.animate-fade { animation: fade 0.4s ease-out both; }
+.animate-pop { animation: pop 0.45s ease-out both; }
+.animate-scan { animation: scanline 2.4s ease-in-out infinite; }
+.animate-toast { animation: toast-in 0.35s var(--ease-out-quint) both; }
+.check-draw { stroke-dasharray: 48; stroke-dashoffset: 48; animation: draw 0.5s 0.2s ease-out forwards; }
+
+/* Scroll-reveal: JS adds .is-in when the element enters the viewport. Content stays visible without JS. */
+.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.7s var(--ease-out-quint), transform 0.7s var(--ease-out-quint); transition-delay: var(--d, 0ms); }
+.js .reveal.is-in { opacity: 1; transform: none; }
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-paper);
+  border-radius: 8px;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js .reveal { opacity: 1; transform: none; }
+}
+
+@keyframes slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}

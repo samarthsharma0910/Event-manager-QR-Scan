@@ -1,103 +1,264 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
+  PARTICIPANT
+  CHECKIN_STAFF
   ADMIN
-  VOLUNTEER
+  SUPER_ADMIN
 }
+
 enum EventStatus {
   DRAFT
-  OPEN
-  CLOSED
+  PUBLISHED
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  FULL
   COMPLETED
   CANCELLED
 }
+
+enum EventCategory {
+  COMMUNITY
+  ENVIRONMENT
+  EDUCATION
+  HEALTH_AWARENESS
+  FOOD_DISTRIBUTION
+  VOLUNTEERING
+  FUNDRAISING
+  SKILL_DEVELOPMENT
+  OTHER
+}
+
 enum RegistrationStatus {
-  ACTIVE
+  REGISTERED
   CANCELLED
-  WAITLISTED
+}
+
+enum CheckInMethod {
+  QR_SCAN
+  MANUAL_ID
+  ADMIN_OVERRIDE
+}
+
+enum PartnerType {
+  NGO
+  COMPANY
+  EDUCATIONAL
+  COMMUNITY
+  GOVERNMENT
 }
 
 model User {
-  id String @id @default(cuid())
-  name String
-  email String @unique
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
   passwordHash String
-  role Role @default(VOLUNTEER)
+  phone        String?
+  organization String?
+  city         String?
+  image        String?
+  role         Role     @default(PARTICIPANT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  volunteerProfile VolunteerProfile?
+  registrations    Registration[]
+  checkIns         Attendance[]        @relation("CheckedInBy")
+  resetTokens      PasswordResetToken[]
+  createdEvents    Event[]             @relation("EventCreator")
+
+  @@index([role])
+}
+
+model VolunteerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  interests String[]
+  bio       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  createdEvents Event[] @relation("EventCreator")
-  attendances Attendance[] @relation("CheckinVolunteer")
-  assignments EventVolunteer[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model Event {
-  id String @id @default(cuid())
-  name String
-  slug String @unique
-  description String
-  category String
-  date DateTime
-  startTime String
-  endTime String
-  venue String
-  address String
-  capacity Int?
-  registrationOpen DateTime
-  registrationClose DateTime
-  status EventStatus @default(DRAFT)
-  partnerOrganization String?
-  createdById String
-  createdBy User @relation("EventCreator", fields:[createdById], references:[id])
+  id                   String        @id @default(cuid())
+  title                String
+  slug                 String        @unique
+  description          String
+  coverImage           String?
+  category             EventCategory @default(COMMUNITY)
+  /// Calendar date of the event (wall-clock, no timezone).
+  date                 DateTime      @db.Date
+  /// Wall-clock times, "HH:mm".
+  startTime            String
+  endTime              String
+  location             String
+  address              String?
+  capacity             Int
+  /// Wall-clock deadline stored as naive UTC (see lib/datetime.ts).
+  registrationDeadline DateTime?
+  status               EventStatus   @default(DRAFT)
+  organizer            String
+  contactEmail         String?
+  contactPhone         String?
+  agenda               Json          @default("[]")
+  volunteerRequirements String?
+  createdById          String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  createdBy     User?          @relation("EventCreator", fields: [createdById], references: [id], onDelete: SetNull)
   registrations Registration[]
-  assignments EventVolunteer[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@index([date, status])
+  attendances   Attendance[]
+  partners      EventPartner[]
+  sdgs          EventSDG[]
+
+  @@index([status, date])
+  @@index([category])
+  @@index([date])
 }
-model Participant {
-  id String @id @default(cuid())
-  name String
-  phone String
-  email String
-  ageGroup String?
-  locality String?
-  consent Boolean
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  registrations Registration[]
-  @@unique([email, phone])
-}
+
 model Registration {
-  id String @id @default(cuid())
-  eventId String
-  event Event @relation(fields:[eventId], references:[id], onDelete: Cascade)
-  participantId String
-  participant Participant @relation(fields:[participantId], references:[id])
-  qrToken String @unique
-  status RegistrationStatus @default(ACTIVE)
-  registeredAt DateTime @default(now())
+  id                 String             @id @default(cuid())
+  userId             String
+  eventId            String
+  seq                Int                @unique @default(autoincrement())
+  ticketToken        String             @unique
+  registrationNumber String             @unique
+  status             RegistrationStatus @default(REGISTERED)
+  fullName           String
+  email              String
+  phone              String
+  organization       String?
+  city               String?
+  volunteerInterest  String?
+  isVolunteer        Boolean            @default(false)
+  consentGiven       Boolean            @default(true)
+  registeredAt       DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Restrict)
   attendance Attendance?
-  @@unique([eventId, participantId])
+
+  @@unique([userId, eventId])
   @@index([eventId, status])
+  @@index([registeredAt])
 }
+
 model Attendance {
-  id String @id @default(cuid())
-  registrationId String @unique
-  registration Registration @relation(fields:[registrationId], references:[id], onDelete: Cascade)
-  checkedInAt DateTime @default(now())
-  checkedInById String
-  checkedInBy User @relation("CheckinVolunteer", fields:[checkedInById], references:[id])
+  id             String        @id @default(cuid())
+  registrationId String        @unique
+  eventId        String
+  checkedInAt    DateTime      @default(now())
+  checkedInById  String?
+  method         CheckInMethod
+
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  event        Event        @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  checkedInBy  User?        @relation("CheckedInBy", fields: [checkedInById], references: [id], onDelete: SetNull)
+
+  @@index([eventId, checkedInAt])
   @@index([checkedInAt])
 }
-model EventVolunteer {
+
+model Partner {
+  id            String      @id @default(cuid())
+  name          String
+  logo          String?
+  description   String?
+  website       String?
+  contactPerson String?
+  contactEmail  String?
+  type          PartnerType @default(NGO)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  events EventPartner[]
+
+  @@index([type])
+}
+
+model EventPartner {
+  eventId   String
+  partnerId String
+
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, partnerId])
+  @@index([partnerId])
+}
+
+model SDGGoal {
+  id          String @id @default(cuid())
+  number      Int    @unique
+  title       String
+  description String?
+
+  events EventSDG[]
+}
+
+model EventSDG {
   eventId String
-  userId String
-  event Event @relation(fields:[eventId], references:[id], onDelete: Cascade)
-  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
-  @@id([eventId, userId])
+  sdgId   String
+
+  event Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sdg   SDGGoal @relation(fields: [sdgId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, sdgId])
+  @@index([sdgId])
+}
+
+/// Singleton row (id = "default") holding the NGO's configurable branding.
+model OrgSettings {
+  id             String   @id @default("default")
+  name           String   @default("GreenBridge Foundation")
+  shortName      String   @default("GreenBridge")
+  ticketPrefix   String   @default("GBF")
+  tagline        String   @default("Small actions. Stronger communities.")
+  description    String   @default("")
+  logoUrl        String?
+  heroImageUrl   String?
+  contactEmail   String?
+  contactPhone   String?
+  address        String?
+  website        String?
+  facebookUrl    String?
+  instagramUrl   String?
+  linkedinUrl    String?
+  twitterUrl     String?
+  primaryColor   String   @default("#1F5D45")
+  accentColor    String   @default("#7FAF91")
+  updatedAt      DateTime @updatedAt
+}
+
+/// Fixed-window counters used to rate limit login, reset and check-in calls.
+model RateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+
+  @@index([windowStart])
 }
