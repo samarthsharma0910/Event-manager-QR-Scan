@@ -24,7 +24,6 @@ export async function SiteFooter() {
             <Link className={`block ${link}`} href="/events">Events</Link>
             <Link className={`block ${link}`} href="/volunteer">Become a volunteer</Link>
             <Link className={`block ${link}`} href="/partners">Partners</Link>
-            <Link className={`block ${link}`} href="/about">About us</Link>
           </nav>
           <div className="space-y-2.5 text-[0.9375rem]">
             <p className="mb-3 text-sm font-semibold text-white">Contact</p>

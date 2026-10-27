@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 const DEFAULTS = {
   id: "default",
   description:
-    "GreenBridge Foundation brings neighbours, students, businesses and local bodies together to run practical, community-led initiatives — from clean-ups and tree plantations to digital-literacy classes and food drives.",
+    "Utsav Foundation is based in Gurugram, Haryana and organises community events that everyone is welcome to join.",
 };
 
 /** The NGO's configurable branding. Created on first read so the app never runs without it. */

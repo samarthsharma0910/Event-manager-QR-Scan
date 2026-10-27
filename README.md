@@ -1,11 +1,11 @@
-# GreenBridge Events — NGO event registration, QR ticketing & attendance
+# Utsav Foundation — event registration, QR ticketing & attendance
 
 A Next.js (App Router) + TypeScript + PostgreSQL + Prisma platform with two integrated sides:
 
 - **Participant portal** — browse events, register, hold a secure QR ticket, track attendance and volunteer hours.
 - **NGO admin portal** — create/publish events, manage partners and SDGs, scan tickets at the door, manage attendance, run reports, export to Excel/CSV.
 
-PostgreSQL is the source of truth. The scanner only sends a ticket token to the server; the server validates it and writes attendance. Nothing on the dashboards is hardcoded. The organisation's name, logo, colours and contact details live in the database and are edited at **Admin → Settings** — "GreenBridge Foundation" is only seed data.
+PostgreSQL is the source of truth. The scanner only sends a ticket token to the server; the server validates it and writes attendance. Nothing on the dashboards is hardcoded. The organisation's name, logo, colours and contact details live in the database and are edited at **Admin → Settings** — "GreenBridge Foundation" is only demo seed data.
 
 ## Contents
 [Quick start](#quick-start-local) · [Environment variables](#environment-variables) · [Demo accounts](#demo-accounts-development-only) · [How it works](#how-it-works) · [Going live](#going-live-vercel--neon-free) · [Running it day to day](#running-it-day-to-day) · [Security](#security) · [Testing](#testing) · [Release notes](#release-notes--project-status) · [Credits & legal](#credits--legal)
