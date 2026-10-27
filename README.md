@@ -8,7 +8,7 @@ A Next.js (App Router) + TypeScript + PostgreSQL + Prisma platform with two inte
 PostgreSQL is the source of truth. The scanner only sends a ticket token to the server; the server validates it and writes attendance. Nothing on the dashboards is hardcoded. The organisation's name, logo, colours and contact details live in the database and are edited at **Admin → Settings** — "GreenBridge Foundation" is only seed data.
 
 ## Contents
-[Quick start](#quick-start-local) · [Environment variables](#environment-variables) · [Demo accounts](#demo-accounts-development-only) · [How it works](#how-it-works) · [Going live](#going-live-vercel--neon-free) · [Running it day to day](#running-it-day-to-day) · [Security](#security) · [Testing](#testing) · [Credits & legal](#credits--legal)
+[Quick start](#quick-start-local) · [Environment variables](#environment-variables) · [Demo accounts](#demo-accounts-development-only) · [How it works](#how-it-works) · [Going live](#going-live-vercel--neon-free) · [Running it day to day](#running-it-day-to-day) · [Security](#security) · [Testing](#testing) · [Release notes](#release-notes--project-status) · [Credits & legal](#credits--legal)
 
 ## Quick start (local)
 
@@ -113,6 +113,40 @@ npm run test:flow   # against a real PostgreSQL: seat races, duplicate registrat
 ```
 GitHub Actions (`.github/workflows/ci.yml`) runs type-check, build, the test above and a dependency audit on every push.
 Accessibility was audited automatically (axe-core, WCAG 2.1 AA + best practice) on every page; there are no findings. Please also try the scanner on a real phone before a live event.
+
+## Release notes & project status
+
+Production site: <https://greenbridge-events.vercel.app> · Hosting: Vercel · Database: Neon PostgreSQL · Source: this repository (`main`).
+
+### What was done, in order
+1. **Production-readiness review.** TypeScript check and production build verified; `.env` confirmed git-ignored; dependency audit run.
+2. **Tested against a synthetic database.** A throw-away PostgreSQL was created, migrated and seeded, then used for `npm run test:flow` (seat races, duplicate registration, every QR check-in outcome, simultaneous scans, check-in window, email-token handling), an HTTP smoke test of the production build, and the go-live script. All checks passed. The test database was then deleted; the real database was never touched during testing.
+3. **Shipping.** Code pushed to GitHub, deployed to Vercel, live database migrated, and the first super-admin created with `npm run db:bootstrap`.
+4. **Demo data removed from production.** `npm run db:go-live` erased the seeded events, registrations, volunteers and demo accounts (which shared a public password), leaving only the real admin account. Dashboard figures are computed from the database on every request; nothing is hardcoded.
+5. **Event location picker** (admin → Events → new / edit):
+   - type the venue and address by hand, **or**
+   - **Pick on map**: OpenStreetMap map with place search, tap-to-pin and a draggable marker; the address is filled in automatically, **or**
+   - **Use my current location** (browser geolocation).
+   - Pins are stored as `latitude` / `longitude` (migration `20261027120000_event_coordinates`). They need no API key and no billing (OpenStreetMap tiles + Nominatim).
+   - The venue address and an **Open in Maps** link now appear on the participant's QR ticket; the downloaded ticket image includes the address; the event page has **Get directions**; calendar (`.ics`) files include the coordinates.
+6. **Google sign-in for participants** on `/login` and `/register` (server-side OAuth 2.0 authorization-code flow with a random `state` check; only Google-verified emails are accepted; staff accounts are refused and must use `/admin/login`). The button only appears when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. See [Google sign-in](#google-sign-in).
+7. **Self-service password reset removed** from the participant login (link, pages and server code deleted). Super admins can still issue a temporary password under *Settings → Team*. Email (Resend) is optional and currently only needed for sign-up confirmation emails.
+
+### Production configuration (Vercel → Settings → Environment Variables)
+`DATABASE_URL`, `AUTH_SECRET`, `NEXTAUTH_URL` (`https://greenbridge-events.vercel.app`), `APP_TIMEZONE`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. Optional: `RESEND_API_KEY`, `MAIL_FROM` (requires a verified domain).
+Google Cloud → OAuth client → authorised redirect URI: `https://greenbridge-events.vercel.app/api/auth/google/callback` (add `http://localhost:3000/api/auth/google/callback` to test locally).
+
+### Deploying a change
+```bash
+npx prisma migrate deploy    # only when prisma/migrations changed; run against the production DATABASE_URL first
+git push                     # then:  npx vercel --prod
+```
+
+### Known limitations
+- `npm audit` reports 3 high findings in the Prisma CLI's dependency chain (`deepmerge-ts`). It affects build tooling only, not the running site; the fix is a major Prisma 7 upgrade.
+- Accounts created with Google have no password, so the profile page's "change password" form does not apply to them.
+- Nominatim (place search and address look-up) is a free public service with fair-use limits; if search is unavailable, the venue can still be typed or pinned on the map.
+- Real Google sign-in and the map picker were verified with simulated responses and a build; give both a try in a real browser after each deployment.
 
 ## Credits & legal
 - Photos in `public/photos/` are free-to-use images from [Unsplash](https://unsplash.com/license), included as demo content — replace them with your own from the admin forms.
