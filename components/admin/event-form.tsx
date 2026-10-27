@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { CoverImage, SubmitButton, useSubmit } from "@/components/ui/client";
 import { Icon } from "@/components/ui/icons";
 import { ImageField } from "./image-field";
+import { LocationPicker } from "./location-picker";
 import { Field, FormError } from "@/components/ui/server";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/lib/event-state";
 import type { ActionState } from "@/lib/validation";
@@ -18,6 +19,8 @@ export type EventFormValues = {
   endTime: string;
   location: string;
   address: string;
+  latitude: string;
+  longitude: string;
   capacity: number;
   registrationDeadline: string;
   status: string;
@@ -94,12 +97,10 @@ export function EventForm({ mode, action: serverAction, values: v, partners, sdg
             <input id="endTime" name="endTime" type="time" defaultValue={v.endTime} required className="input" aria-invalid={inv("endTime")} aria-describedby="endTime-error" />
           </Field>
         </div>
-        <Field label="Location" name="location" errors={e.location} required>
-          <input id="location" name="location" defaultValue={v.location} required className="input" aria-invalid={inv("location")} aria-describedby="location-error" />
-        </Field>
-        <Field label="Address" name="address" errors={e.address}>
-          <input id="address" name="address" defaultValue={v.address} className="input" />
-        </Field>
+        <LocationPicker
+          defaults={{ location: v.location, address: v.address, latitude: v.latitude, longitude: v.longitude }}
+          errors={{ location: e.location, address: e.address, latitude: e.latitude, longitude: e.longitude }}
+        />
       </fieldset>
 
       <fieldset className="space-y-5">

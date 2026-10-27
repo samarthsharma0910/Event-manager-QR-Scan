@@ -26,6 +26,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     `SUMMARY:${esc(event.title)}`,
     `DESCRIPTION:${esc(event.description.split("\n")[0] + `\n\n${origin}/events/${event.slug}`)}`,
     `LOCATION:${esc([event.location, event.address].filter(Boolean).join(", "))}`,
+    ...(event.latitude != null && event.longitude != null ? [`GEO:${event.latitude};${event.longitude}`] : []),
     `URL:${origin}/events/${event.slug}`,
     "END:VEVENT",
     "END:VCALENDAR",

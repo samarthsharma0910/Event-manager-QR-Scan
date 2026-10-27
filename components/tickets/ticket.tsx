@@ -1,6 +1,7 @@
 import { CoverImage } from "@/components/ui/client";
 import { formatDate, formatInstantTime, formatTime } from "@/lib/datetime";
 import { Icon } from "@/components/ui/icons";
+import { mapsUrl } from "@/lib/maps";
 
 export type TicketData = {
   orgName: string;
@@ -9,6 +10,9 @@ export type TicketData = {
   date: Date;
   startTime: string;
   location: string;
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   registrationNumber: string;
   qr: string;
   state: "REGISTERED" | "CHECKED_IN" | "CANCELLED" | "EVENT_CANCELLED";
@@ -41,6 +45,12 @@ export function Ticket({ t }: { t: TicketData }) {
           {formatDate(t.date)} · {formatTime(t.startTime)}
         </p>
         <p className="mt-0.5 text-muted">{t.location}</p>
+        {t.address && <p className="mx-auto mt-0.5 max-w-xs text-sm text-muted">{t.address}</p>}
+        {!dead && (
+          <a href={mapsUrl(t)} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-forest hover:underline">
+            <Icon name="pin" className="size-4" /> Open in Maps
+          </a>
+        )}
 
         <div className={`mx-auto mt-6 w-full max-w-[19rem] rounded-2xl border border-line bg-white p-3 ${dead ? "opacity-30" : ""}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}

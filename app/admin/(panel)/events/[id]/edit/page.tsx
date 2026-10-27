@@ -40,7 +40,7 @@ export default async function EditEventPage({ params, searchParams }: { params: 
         sdgs={sdgs}
         values={{
           title: event.title, description: event.description, coverImage: event.coverImage ?? "", category: event.category,
-          date: toDateInput(event.date), startTime: event.startTime, endTime: event.endTime, location: event.location, address: event.address ?? "",
+          date: toDateInput(event.date), startTime: event.startTime, endTime: event.endTime, location: event.location, address: event.address ?? "", latitude: event.latitude?.toString() ?? "", longitude: event.longitude?.toString() ?? "",
           capacity: event.capacity, registrationDeadline: event.registrationDeadline ? toDateTimeInput(event.registrationDeadline) : "",
           status: event.status, organizer: event.organizer, contactEmail: event.contactEmail ?? "", contactPhone: event.contactPhone ?? "",
           volunteerRequirements: event.volunteerRequirements ?? "", agenda: parseAgenda(event.agenda),

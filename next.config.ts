@@ -12,7 +12,7 @@ const config: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           // Camera is required by the check-in scanner (same-origin only).
-          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self)" },
           // Browsers remember to use HTTPS only (ignored over plain http, e.g. localhost).
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
           // Restrictions that cost nothing: no embedding, no plugins, forms and <base> stay on this site.

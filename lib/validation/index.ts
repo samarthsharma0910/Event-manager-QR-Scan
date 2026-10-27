@@ -21,6 +21,12 @@ const optionalText = (max: number) =>
     .optional()
     .transform((v) => (v ? v : undefined));
 
+const coordinate = (min: number, max: number) =>
+  z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number("Pick a valid map location.").min(min, "Pick a valid map location.").max(max, "Pick a valid map location.").optional(),
+  );
+
 const phone = z
   .string()
   .trim()
@@ -118,6 +124,8 @@ export const eventSchema = z
     endTime: z.string().regex(HHMM, "Choose an end time."),
     location: z.string().trim().min(2, "Enter the venue name.").max(160),
     address: optionalText(300),
+    latitude: coordinate(-90, 90),
+    longitude: coordinate(-180, 180),
     capacity: z.coerce.number().int("Whole numbers only.").min(1, "Capacity must be at least 1.").max(100000),
     registrationDeadline: z
       .string()

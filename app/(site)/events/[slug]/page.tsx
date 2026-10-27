@@ -12,6 +12,7 @@ import { prisma } from "@/lib/db";
 import { formatDate, formatDeadline, formatTimeRange } from "@/lib/datetime";
 import { CATEGORY_LABEL, type RegistrationState } from "@/lib/event-state";
 import { getPublicEvent, parseAgenda } from "@/lib/services/events";
+import { mapsUrl } from "@/lib/maps";
 
 type Params = Promise<{ slug: string }>;
 
@@ -145,7 +146,7 @@ export default async function EventDetailPage({ params }: { params: Params }) {
                 <dt className="sr-only">Location</dt>
                 <dd className="flex gap-3">
                   <Icon name="pin" className="mt-0.5 size-5 shrink-0 text-forest" />
-                  <span><span className="font-semibold">{event.location}</span>{event.address && <span className="block text-muted">{event.address}</span>}</span>
+                  <span><span className="font-semibold">{event.location}</span>{event.address && <span className="block text-muted">{event.address}</span>}<a href={mapsUrl(event)} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block font-semibold text-forest hover:underline">Get directions ↗</a></span>
                 </dd>
               </div>
               {event.registrationDeadline && (

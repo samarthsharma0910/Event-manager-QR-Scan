@@ -44,6 +44,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             date: reg.event.date,
             startTime: reg.event.startTime,
             location: reg.event.location,
+            address: reg.event.address,
+            latitude: reg.event.latitude,
+            longitude: reg.event.longitude,
             registrationNumber: reg.registrationNumber,
             qr,
             state,
@@ -61,6 +64,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
               participant={reg.fullName}
               when={`${formatDate(reg.event.date)} · ${formatTime(reg.event.startTime)}`}
               location={reg.event.location}
+              address={reg.event.address ?? undefined}
               registrationNumber={reg.registrationNumber}
             />
             {canCancel && (

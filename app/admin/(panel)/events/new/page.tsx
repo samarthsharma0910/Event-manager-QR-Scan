@@ -22,7 +22,7 @@ export default async function NewEventPage() {
         partners={partners}
         sdgs={sdgs}
         values={{
-          title: "", description: "", coverImage: "", category: "COMMUNITY", date: "", startTime: "09:00", endTime: "12:00", location: "", address: "",
+          title: "", description: "", coverImage: "", category: "COMMUNITY", date: "", startTime: "09:00", endTime: "12:00", location: "", address: "", latitude: "", longitude: "",
           capacity: 100, registrationDeadline: "", status: "DRAFT", organizer: settings.name, contactEmail: settings.contactEmail ?? "",
           contactPhone: settings.contactPhone ?? "", volunteerRequirements: "", agenda: [], partnerIds: [], sdgIds: [],
         }}

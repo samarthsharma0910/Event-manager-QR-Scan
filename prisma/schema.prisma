@@ -143,6 +143,9 @@ model Event {
   endTime               String
   location              String
   address               String?
+  /// Map pin picked in the admin location picker (WGS84). Both null when the venue was typed manually.
+  latitude              Float?
+  longitude             Float?
   capacity              Int
   /// Wall-clock deadline stored as naive UTC (see lib/datetime.ts).
   registrationDeadline  DateTime?

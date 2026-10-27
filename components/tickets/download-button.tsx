@@ -10,6 +10,7 @@ type Props = {
   participant: string;
   when: string;
   location: string;
+  address?: string;
   registrationNumber: string;
 };
 
@@ -52,6 +53,12 @@ export function DownloadTicketButton(p: Props) {
       c.fillStyle = "#55635a";
       c.font = "28px system-ui, sans-serif";
       c.fillText(p.location, W / 2, 504);
+      if (p.address) {
+        c.font = "22px system-ui, sans-serif";
+        let line = p.address;
+        while (line.length > 3 && c.measureText(line).width > W - 100) line = line.slice(0, -2);
+        c.fillText(line === p.address ? line : `${line.trimEnd()}…`, W / 2, 540);
+      }
 
       c.drawImage(img, (W - 640) / 2, 560, 640, 640);
       c.fillStyle = "#55635a";
