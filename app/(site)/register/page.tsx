@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/shell";
-import { SignupForm } from "@/components/auth/forms";
+import { GoogleButton, SignupForm } from "@/components/auth/forms";
 import { getCurrentUser, homeFor, safeNext } from "@/lib/auth/session";
+import { googleEnabled } from "@/lib/auth/google";
 
 export const metadata: Metadata = { title: "Create an account" };
 
@@ -24,6 +25,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
         </>
       }
     >
+      {googleEnabled() && <GoogleButton next={next} />}
       <SignupForm next={next} />
     </AuthShell>
   );

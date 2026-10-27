@@ -1,22 +1,18 @@
 "use server";
 
-import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { AuthError, authorizeUser, endSession, homeFor, safeNext, startSession } from "@/lib/auth/session";
-import { appUrl, mailEnabled, sendMail } from "@/lib/mail";
+import { mailEnabled } from "@/lib/mail";
 import { isStaffRole } from "@/lib/permissions";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { consumeVerificationToken, sendVerificationEmail } from "@/lib/services/verification";
-import { forgotSchema, loginSchema, resetSchema, signupSchema, zodState, type ActionState } from "@/lib/validation";
+import { loginSchema, signupSchema, zodState, type ActionState } from "@/lib/validation";
 
-const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 // Compared against when the email is unknown so response time doesn't reveal whether an account exists.
 const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", 12);
-/** Truncated to the second so a session minted right after a password change is still valid (JWT `iat` has 1 s resolution). */
-const nowToSecond = () => new Date(Math.floor(Date.now() / 1000) * 1000);
 
 /**
  * Cheap bot filter for public forms: a hidden field real people never fill in, plus a render timestamp so
@@ -106,61 +102,6 @@ export async function loginAction(_: ActionState, fd: FormData): Promise<ActionS
 export async function logoutAction() {
   await endSession();
   redirect("/");
-}
-
-export async function forgotPasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
-  const parsed = forgotSchema.safeParse(Object.fromEntries(fd));
-  if (!parsed.success) return zodState(parsed.error);
-
-  const ip = await clientIp();
-  if (!(await rateLimit(`forgot:${ip}`, 5, 3600)).ok) return { error: "Too many requests. Please try again later." };
-  if (!(await rateLimit(`forgot-email:${parsed.data.email}`, 3, 3600)).ok) {
-    return { ok: true, message: "If an account exists for that email, we've sent a link to reset your password." };
-  }
-
-  const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-  if (user) {
-    const token = randomBytes(32).toString("hex");
-    await prisma.passwordResetToken.create({
-      data: { userId: user.id, tokenHash: sha256(token), expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
-    });
-    const link = `${appUrl()}/reset-password?token=${token}`;
-    after(() =>
-      sendMail({
-        to: user.email,
-        subject: "Reset your password",
-        heading: "Reset your password",
-        paragraphs: ["We received a request to reset the password for your account. The link works for one hour.", "If you didn't ask for this, you can safely ignore this email."],
-        cta: { url: link, label: "Choose a new password" },
-      }),
-    );
-    // Without a mail service the link can only be read from the server log (development).
-    if (!mailEnabled()) console.log(`[password-reset] ${user.email}: ${link}`);
-  }
-  // Same response whether or not the account exists.
-  return { ok: true, message: "If an account exists for that email, we've sent a link to reset your password." };
-}
-
-export async function resetPasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
-  const parsed = resetSchema.safeParse(Object.fromEntries(fd));
-  if (!parsed.success) return zodState(parsed.error);
-
-  const ip = await clientIp();
-  if (!(await rateLimit(`reset:${ip}`, 10, 3600)).ok) return { error: "Too many attempts. Please try again later." };
-
-  const record = await prisma.passwordResetToken.findUnique({ where: { tokenHash: sha256(parsed.data.token) } });
-  if (!record || record.usedAt || record.expiresAt < new Date()) {
-    return { error: "This reset link is invalid or has expired. Please request a new one." };
-  }
-  await prisma.$transaction([
-    // Resetting via an emailed link also proves the address, and signs out any session an attacker might hold.
-    prisma.user.update({
-      where: { id: record.userId },
-      data: { passwordHash: await bcrypt.hash(parsed.data.password, 12), sessionsValidAfter: nowToSecond(), emailVerifiedAt: new Date() },
-    }),
-    prisma.passwordResetToken.updateMany({ where: { userId: record.userId, usedAt: null }, data: { usedAt: new Date() } }),
-  ]);
-  redirect("/login?reset=1");
 }
 
 /** Called from the confirmation page's button (not on page load, so email link scanners can't use up the token). */

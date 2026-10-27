@@ -33,6 +33,7 @@ The seed **wipes and recreates** all data — never run it against a database th
 | `NEXTAUTH_URL` | yes | Public site URL; used in links inside emails. |
 | `APP_TIMEZONE` | yes | IANA timezone of your events (default `Asia/Kolkata`). |
 | `RESEND_API_KEY`, `MAIL_FROM` | no | Turns on email (see [Email](#email)). |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | no | Turns on "Continue with Google" for participants (see [Google sign-in](#google-sign-in)). |
 | `SEED_PASSWORD` | no | Password for seeded demo accounts (default `Demo@12345`). |
 
 ## Demo accounts (development only)
@@ -76,12 +77,20 @@ Participants and staff have **separate sign-in pages** and each refuses the othe
 **Starting clean after a demo:** `npm run db:go-live` (needs the same `ADMIN_*` variables) **erases all events, registrations, attendance, partners and users** and recreates your super admin. It refuses to run without `--yes`, which the npm script supplies, so double-check `DATABASE_URL` first.
 
 ### Email
-Without email the site works, but password-reset links are only written to the server log, sign-ups are not asked to confirm their address, and registration confirmations are not sent. Super admins can issue temporary passwords (*Settings → Team roles → Reset password*). To turn email on, create a free [Resend](https://resend.com) account (3,000 emails/month), verify your sending domain, and set `RESEND_API_KEY` and `MAIL_FROM`. With email on, new accounts must confirm their address before registering for events.
+Without email the site works, but sign-ups are not asked to confirm their address, and registration confirmations are not sent. Super admins can issue temporary passwords (*Settings → Team roles → Reset password*). To turn email on, create a free [Resend](https://resend.com) account (3,000 emails/month), verify your sending domain, and set `RESEND_API_KEY` and `MAIL_FROM`. With email on, new accounts must confirm their address before registering for events.
 
 ### Hosting notes
 - The free Neon database sleeps when idle; the first request after a quiet period can take a couple of seconds.
 - Vercel's free *Hobby* plan is for personal, non-commercial use. If your organisation's use counts as commercial, use their paid plan or another host (any Node.js host works: `npm run build && npm start`).
 - Uploaded images are stored in PostgreSQL (≈ a few hundred KB each after automatic resizing), so no extra storage service is needed.
+
+## Google sign-in
+
+Participants can sign in or register with Google. Staff always use the separate staff sign-in. There is no self-service password reset: a super admin issues a temporary password (*Settings → Team*).
+
+1. In [Google Cloud Console](https://console.cloud.google.com/) create a project, then *APIs & Services → OAuth consent screen* (External; add your app name and support email).
+2. *Credentials → Create credentials → OAuth client ID → Web application*. Add the authorised redirect URI `<NEXTAUTH_URL>/api/auth/google/callback` (for example `https://greenbridge-events.vercel.app/api/auth/google/callback`).
+3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` on your host and redeploy. The button appears automatically once both are set.
 
 ## Running it day to day
 - **Monitoring:** point a free uptime monitor (UptimeRobot, Better Stack) at `https://your-site/api/health` — it returns `200` when the app can reach the database and `503` when it can't. Runtime errors appear in Vercel → Logs.
@@ -93,7 +102,7 @@ Without email the site works, but password-reset links are only written to the s
 - Passwords are bcrypt-hashed (cost 12). Sessions are signed, httpOnly, SameSite=Lax cookies; the role is **re-read from the database on every request**, and changing or resetting a password signs out every other device.
 - Every admin page, server action and API route checks the signed-in user's permission server-side; hiding buttons is never the only protection.
 - Zod validation on all input, Prisma parameterised queries, CSV/Excel export formula-injection protection, uploads accept only real JPG/PNG/WebP/GIF files (checked by content, never SVG).
-- Rate limiting (stored in PostgreSQL, so it works on serverless) on login, sign-up, password reset, e-mail confirmation, uploads and check-in. Sign-up also uses a honeypot and a minimum-time check against bots.
+- Rate limiting (stored in PostgreSQL, so it works on serverless) on login, sign-up, Google sign-in, e-mail confirmation, uploads and check-in. Sign-up also uses a honeypot and a minimum-time check against bots.
 - Security headers: HSTS, `nosniff`, no framing, `form-action`/`base-uri` locked to the site. QR tickets contain only a 192-bit random token, never personal data.
 
 ## Testing

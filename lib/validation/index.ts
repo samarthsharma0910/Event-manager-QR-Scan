@@ -51,10 +51,6 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Enter your password.").max(200),
 });
 
-export const forgotSchema = z.object({ email: z.string().trim().toLowerCase().email("Enter a valid email address.") });
-
-export const resetSchema = z.object({ token: z.string().min(20).max(200), password });
-
 export const profileSchema = z.object({
   name: z.string().trim().min(2, "Enter your full name.").max(100),
   phone: phone.optional().or(z.literal("").transform(() => undefined)),
