@@ -8,6 +8,13 @@ import { getImpactStats } from "@/lib/services/stats";
 
 export const metadata: Metadata = { title: "About" };
 
+const TEAM = [
+  { role: "Founder & President", name: "Prof. (Dr.) Raj Nehru", note: "Vice Chancellor, Shri Vishwakarma Skill University" },
+  { role: "Founding Trustee", name: "Mrs. Sunaina Nehru", note: "Social worker" },
+  { role: "Vice-President", name: "Mr. Pankaj Dhar", note: "Corporate professional" },
+  { role: "Treasurer", name: "Mr. Virender Thakur", note: "Oversees operations" },
+];
+
 export default async function AboutPage() {
   const [s, impact] = await Promise.all([getSettings(), getImpactStats()]);
   const numbers = [
@@ -46,6 +53,19 @@ export default async function AboutPage() {
             </Reveal>
           ))}
         </dl>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6" aria-labelledby="team-heading">
+        <h2 id="team-heading" className="text-2xl font-semibold sm:text-3xl">Our team</h2>
+        <ul className="mt-8 grid gap-5 sm:grid-cols-2">
+          {TEAM.map((m) => (
+            <li key={m.name} className="rounded-2xl border border-line bg-white p-6">
+              <p className="eyebrow">{m.role}</p>
+              <p className="mt-2 font-display text-xl font-semibold">{m.name}</p>
+              <p className="mt-1 text-sm text-muted">{m.note}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {(s.contactEmail || s.address || s.contactPhone) && (

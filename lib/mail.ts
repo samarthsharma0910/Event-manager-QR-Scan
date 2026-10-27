@@ -2,7 +2,7 @@ import { getSettings } from "@/lib/services/settings";
 
 /**
  * Outbound email via Resend (https://resend.com, free tier: 3,000 emails/month).
- * Configure RESEND_API_KEY and MAIL_FROM (e.g. "GreenBridge <noreply@yourdomain.org>", on a domain you verified in Resend).
+ * Configure RESEND_API_KEY and MAIL_FROM (e.g. "Utsav Foundation <noreply@yourdomain.org>", on a domain you verified in Resend).
  * Without those the app still works: messages are logged on the server and email verification is switched off.
  */
 export function mailEnabled() {

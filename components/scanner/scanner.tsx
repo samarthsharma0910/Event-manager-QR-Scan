@@ -239,7 +239,7 @@ function ManualEntry({ manual, setManual, disabled, onSubmit, open, checking }: 
         }}
       >
         <label htmlFor="manual-id" className="label">Registration ID</label>
-        <input id="manual-id" value={manual} onChange={(e) => setManual(e.target.value)} placeholder="GBF-2026-00482" autoCapitalize="characters" autoComplete="off" className="input font-mono uppercase" />
+        <input id="manual-id" value={manual} onChange={(e) => setManual(e.target.value)} placeholder="UTS-2026-00482" autoCapitalize="characters" autoComplete="off" className="input font-mono uppercase" />
         <p className="hint">The ID printed on the participant&apos;s ticket. It goes through the same checks as a QR scan.</p>
         <button className="btn-primary w-full" disabled={disabled || manual.trim().length < 3}>{checking ? "Checking ticket…" : "Check in"}</button>
       </form>

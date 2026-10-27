@@ -27,7 +27,7 @@ export function SettingsForm({ v }: { v: V }) {
         {text("name", "Organisation name")}
         <div className="grid gap-4 sm:grid-cols-2">
           {text("shortName", "Short name", { hint: "Shown next to the logo." })}
-          {text("ticketPrefix", "Ticket ID prefix", { hint: "Used in IDs like GBF-2026-00482. Existing tickets keep their old prefix." })}
+          {text("ticketPrefix", "Ticket ID prefix", { hint: "Used in IDs like UTS-2026-00482. Existing tickets keep their old prefix." })}
         </div>
         {text("tagline", "Tagline / hero headline")}
         <Field label="Description" name="description" errors={e.description}>
