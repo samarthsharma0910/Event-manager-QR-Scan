@@ -3,7 +3,7 @@ import { EventCard, FeaturedEvent, DateChip } from "@/components/events/event-ca
 import { CoverImage } from "@/components/ui/client";
 import { Icon } from "@/components/ui/icons";
 import { Countdown, CountUp, Reveal } from "@/components/ui/motion";
-import { EmptyState, PartnerLogo } from "@/components/ui/server";
+import { EmptyState, Notice, PartnerLogo, flashParams } from "@/components/ui/server";
 import { eventStart, formatTime, nowWall } from "@/lib/datetime";
 import { listPublicEvents } from "@/lib/services/events";
 import { getPublicPartners, getSdgFocus } from "@/lib/services/public";
@@ -16,7 +16,8 @@ const STEPS = [
   { n: "03", title: "Show up and scan in", body: "Our team scans your ticket at the door. Your attendance and volunteer hours are recorded for you." },
 ];
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ notice?: string; error?: string }> }) {
+  const flash = flashParams(await searchParams);
   const [settings, events, impact, partners, sdgs] = await Promise.all([
     getSettings(),
     listPublicEvents({ when: "upcoming" }, 3),
@@ -38,6 +39,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <Notice {...flash} />
       {/* Hero */}
       <section className="mx-auto grid max-w-6xl items-center gap-12 overflow-x-clip px-4 pb-20 pt-10 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] md:pb-28 md:pt-16">
         <div className="animate-rise">

@@ -59,7 +59,7 @@ export function AdminNav({
         <nav aria-label="Admin" className="flex-1 space-y-6">
           {groups.map((g) => (
             <div key={g.name}>
-              {g.name && <p className="mb-1.5 px-3 text-[0.7rem] font-semibold uppercase tracking-wider text-white/40">{g.name}</p>}
+              {g.name && <p className="mb-1.5 px-3 text-[0.7rem] font-semibold uppercase tracking-wider text-white/65">{g.name}</p>}
               <ul className="space-y-0.5">
                 {g.links.map((i) => {
                   const active = isActive(i.href);

@@ -3,6 +3,8 @@
 // No revalidatePath() here on purpose: every route is force-dynamic (see app/layout.tsx), so data is always fresh,
 // and revalidating right before redirect() stops the client from following the redirect.
 
+import { randomBytes } from "node:crypto";
+import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import type { FlashKey } from "@/lib/flash";
 import type { Prisma, Role } from "@prisma/client";
@@ -274,4 +276,25 @@ export async function changeRoleAction(fd: FormData) {
   if (userId === actor.id) return back("/admin/settings/team", "error", "err_own_role");
   await prisma.user.update({ where: { id: userId }, data: { role } });
   return back("/admin/settings/team", "notice", "role_updated");
+}
+
+/** Issues a one-time temporary password. Shown once to the super admin; the user is signed out everywhere. */
+export async function resetUserPasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const auth = await guardState("users.manage");
+  if (!auth.user) return { error: auth.error };
+  const userId = String(fd.get("userId") ?? "");
+  if (userId === auth.user.id) return { error: "Change your own password from your profile instead." };
+  const target = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+  if (!target) return { error: "That user no longer exists." };
+
+  // 12 characters, no look-alikes, with a letter and a digit guaranteed.
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  const bytes = randomBytes(12);
+  let temp = Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+  temp = temp.slice(0, 10) + "k" + "7";
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: await bcrypt.hash(temp, 12), sessionsValidAfter: new Date(Math.floor(Date.now() / 1000) * 1000), emailVerifiedAt: new Date() },
+  });
+  return { ok: true, message: temp };
 }

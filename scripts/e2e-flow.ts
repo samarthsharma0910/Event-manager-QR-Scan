@@ -7,6 +7,9 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../lib/db";
 import { registerForEvent, cancelRegistration } from "../lib/services/registrations";
 import { performCheckIn } from "../lib/services/checkin";
+import { consumeVerificationToken } from "../lib/services/verification";
+import { createHash } from "node:crypto";
+import { nowWall } from "../lib/datetime";
 
 let failures = 0;
 function check(name: string, cond: boolean, extra?: unknown) {
@@ -17,15 +20,18 @@ function check(name: string, cond: boolean, extra?: unknown) {
 async function main() {
   const run = randomUUID().slice(0, 8);
   const created = { users: [] as string[], events: [] as string[] };
+  // The default check-in window (24 h) would reject these far-future test events; individual tests switch it on explicitly.
+  const prevSettings = await prisma.orgSettings.findUnique({ where: { id: "default" } });
+  await prisma.orgSettings.upsert({ where: { id: "default" }, update: { checkInWindowHours: 0 }, create: { id: "default", checkInWindowHours: 0 } });
   const mkUser = async (role: "PARTICIPANT" | "CHECKIN_STAFF", i: number) => {
     const u = await prisma.user.create({ data: { name: `Test ${role} ${i}`, email: `e2e-${run}-${role}-${i}@example.com`, passwordHash: "x", role } });
     created.users.push(u.id);
     return u;
   };
-  const mkEvent = async (title: string, capacity: number) => {
+  const mkEvent = async (title: string, capacity: number, date = "2027-03-01") => {
     const e = await prisma.event.create({
       data: {
-        title, slug: `e2e-${run}-${title.toLowerCase().replace(/\W+/g, "-")}`, description: "E2E test event for the check-in flow.", date: new Date("2027-03-01T00:00:00Z"),
+        title, slug: `e2e-${run}-${title.toLowerCase().replace(/\W+/g, "-")}`, description: "E2E test event for the check-in flow.", date: new Date(`${date}T00:00:00Z`),
         startTime: "09:00", endTime: "12:00", location: "Test park", capacity, status: "REGISTRATION_OPEN", organizer: "Test",
       },
     });
@@ -112,7 +118,42 @@ async function main() {
     const attended = await prisma.attendance.count({ where: { eventId: eventA.id } });
     const registered = await prisma.registration.count({ where: { eventId: eventA.id, status: "REGISTERED" } });
     check(`stats derive from DB: ${attended}/${registered} attended`, attended === 3 && registered === 3);
+
+    console.log("\nCheck-in window");
+    await prisma.orgSettings.update({ where: { id: "default" }, data: { checkInWindowHours: 24 } });
+    const today = nowWall().toISOString().slice(0, 10); // the NGO's calendar date, not UTC
+    const eventFar = await mkEvent("Event Far", 5);
+    const eventNear = await mkEvent("Event Near", 5, today);
+    await prisma.event.update({ where: { id: eventNear.id }, data: { startTime: "00:00", endTime: "23:59" } });
+    const regFar = await registerForEvent(people[2].id, eventFar.id, input(21));
+    const regNear = await registerForEvent(people[3].id, eventNear.id, input(22));
+    const tokenOf = async (r: Awaited<typeof regFar>) => (r.ok ? await prisma.registration.findUniqueOrThrow({ where: { id: r.registrationId } }) : null);
+    const far = (await tokenOf(regFar))!;
+    const near = (await tokenOf(regNear))!;
+    const early = await performCheckIn({ actor, eventId: eventFar.id, code: far.ticketToken, method: "QR_SCAN" });
+    check("scan weeks before the event → OUTSIDE_WINDOW", early.status === "OUTSIDE_WINDOW" && /opens on/.test(early.message), early);
+    check("…and nothing was recorded", (await prisma.attendance.count({ where: { registrationId: far.id } })) === 0);
+    const onDay = await performCheckIn({ actor, eventId: eventNear.id, code: near.ticketToken, method: "QR_SCAN" });
+    check("scan on the day of the event → SUCCESS", onDay.status === "SUCCESS", onDay);
+    const override = await performCheckIn({ actor, eventId: eventFar.id, code: far.registrationNumber, method: "ADMIN_OVERRIDE" });
+    check("admin manual override is exempt from the window", override.status === "SUCCESS", override);
+    await prisma.orgSettings.update({ where: { id: "default" }, data: { checkInWindowHours: 0 } });
+
+    console.log("\nEmail verification tokens");
+    const vUser = await mkUser("PARTICIPANT", 90);
+    const sha = (t: string) => createHash("sha256").update(t).digest("hex");
+    const goodToken = "a".repeat(64);
+    await prisma.emailVerificationToken.create({ data: { userId: vUser.id, tokenHash: sha(goodToken), expiresAt: new Date(Date.now() + 3600_000) } });
+    check("a valid token confirms the address", (await consumeVerificationToken(goodToken)).ok === true && !!(await prisma.user.findUniqueOrThrow({ where: { id: vUser.id } })).emailVerifiedAt);
+    const reuse = await consumeVerificationToken(goodToken);
+    check("the same token cannot be used twice", !reuse.ok);
+    const oldToken = "b".repeat(64);
+    await prisma.emailVerificationToken.create({ data: { userId: vUser.id, tokenHash: sha(oldToken), expiresAt: new Date(Date.now() - 1000) } });
+    const expired = await consumeVerificationToken(oldToken);
+    check("an expired token is rejected", !expired.ok && expired.reason === "expired");
+    check("garbage input is rejected", !(await consumeVerificationToken("not-a-token")).ok);
   } finally {
+    await prisma.orgSettings.update({ where: { id: "default" }, data: { checkInWindowHours: prevSettings?.checkInWindowHours ?? 24 } }).catch(() => null);
     await prisma.attendance.deleteMany({ where: { eventId: { in: created.events } } });
     await prisma.registration.deleteMany({ where: { eventId: { in: created.events } } });
     await prisma.event.deleteMany({ where: { id: { in: created.events } } });

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useEffect } from "react";
 import { SubmitButton, useSubmit } from "@/components/ui/client";
 import { Field, FormError } from "@/components/ui/server";
+import { ImageField } from "./image-field";
 import { PARTNER_TYPE_LABEL } from "@/lib/event-state";
 import type { ActionState } from "@/lib/validation";
 
@@ -28,9 +29,8 @@ export function PartnerForm({ action: serverAction, values: v, editing }: { acti
           {Object.entries(PARTNER_TYPE_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
       </Field>
-      <Field label="Logo URL" name="logo" errors={e.logo} hint="Optional. A monogram is shown when there is no logo.">
-        <input id="logo" name="logo" defaultValue={v.logo} className="input" aria-describedby="logo-error logo-hint" aria-invalid={e.logo ? true : undefined} />
-      </Field>
+      <ImageField name="logo" label="Logo" defaultValue={v.logo} shape="square" maxEdge={600} hint="Optional. A monogram is shown when there is no logo." />
+      {e.logo && <p role="alert" className="field-error">{e.logo[0]}</p>}
       <Field label="Description" name="description" errors={e.description}>
         <textarea id="description" name="description" rows={3} defaultValue={v.description} className="input" />
       </Field>

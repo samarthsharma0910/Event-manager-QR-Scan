@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { saveSettingsAction } from "@/app/actions/admin";
 import { SubmitButton, useSubmit } from "@/components/ui/client";
 import { Field, FormError } from "@/components/ui/server";
+import { ImageField } from "./image-field";
 
 type V = Record<string, string>;
 
@@ -32,10 +33,15 @@ export function SettingsForm({ v }: { v: V }) {
         <Field label="Description" name="description" errors={e.description}>
           <textarea id="description" name="description" rows={4} defaultValue={v.description} className="input" />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {text("logoUrl", "Logo URL", { hint: "Optional. Square image works best." })}
-          {text("heroImageUrl", "Landing page hero image URL", { hint: "A community photograph or /covers/hero.svg." })}
+        <div className="grid gap-6 sm:grid-cols-2">
+          <ImageField name="logoUrl" label="Logo" defaultValue={v.logoUrl} shape="square" maxEdge={600} hint="Square image works best. Shown in the header and emails." />
+          <ImageField name="heroImageUrl" label="Home page photo" defaultValue={v.heroImageUrl} hint="The large photo on the home page and sign-in pages." />
         </div>
+      </fieldset>
+
+      <fieldset className="space-y-4">
+        <legend className="mb-1 font-display text-xl font-semibold">Check-in</legend>
+        {text("checkInWindowHours", "Check-in window (hours)", { type: "number", hint: "Tickets can be scanned from this many hours before an event starts until this many hours after it ends. Use 0 to allow check-in at any time." })}
       </fieldset>
 
       <fieldset className="space-y-4">

@@ -141,17 +141,20 @@ export default async function EventDetailPage({ params }: { params: Params }) {
               </div>
             </div>
             <dl className="mt-5 space-y-4 border-t border-line pt-5 text-[0.9375rem]">
-              <div className="flex gap-3">
-                <Icon name="pin" className="mt-0.5 size-5 shrink-0 text-forest" />
-                <div>
-                  <dt className="sr-only">Location</dt>
-                  <dd><span className="font-semibold">{event.location}</span>{event.address && <span className="block text-muted">{event.address}</span>}</dd>
-                </div>
+              <div>
+                <dt className="sr-only">Location</dt>
+                <dd className="flex gap-3">
+                  <Icon name="pin" className="mt-0.5 size-5 shrink-0 text-forest" />
+                  <span><span className="font-semibold">{event.location}</span>{event.address && <span className="block text-muted">{event.address}</span>}</span>
+                </dd>
               </div>
               {event.registrationDeadline && (
-                <div className="flex gap-3">
-                  <Icon name="clock" className="mt-0.5 size-5 shrink-0 text-forest" />
-                  <div><dt className="sr-only">Register by</dt><dd>Register by <span className="font-semibold">{formatDeadline(event.registrationDeadline)}</span></dd></div>
+                <div>
+                  <dt className="sr-only">Registration deadline</dt>
+                  <dd className="flex gap-3">
+                    <Icon name="clock" className="mt-0.5 size-5 shrink-0 text-forest" />
+                    <span>Register by <span className="font-semibold">{formatDeadline(event.registrationDeadline)}</span></span>
+                  </dd>
                 </div>
               )}
             </dl>

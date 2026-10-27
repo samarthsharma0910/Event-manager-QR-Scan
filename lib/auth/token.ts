@@ -11,7 +11,7 @@ function secret() {
   return new TextEncoder().encode(value);
 }
 
-export type SessionClaims = { sub: string; role: string };
+export type SessionClaims = { sub: string; role: string; iat: number };
 
 /** Edge-safe (jose only) so the middleware can use it too. */
 export async function signSession(userId: string, role: string) {
@@ -28,7 +28,7 @@ export async function verifySession(token: string | undefined): Promise<SessionC
   try {
     const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
     if (!payload.sub) return null;
-    return { sub: payload.sub, role: String(payload.role ?? "") };
+    return { sub: payload.sub, role: String(payload.role ?? ""), iat: Number(payload.iat ?? 0) };
   } catch {
     return null;
   }

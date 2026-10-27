@@ -39,9 +39,11 @@ export function StatTile({ label, value, children, trend }: { label: string; val
   return (
     <div className="relative bg-white px-5 py-5">
       <dt className="text-[0.8125rem] font-medium text-muted">{label}</dt>
-      <dd className="mt-1.5 font-sans text-[2rem] font-semibold leading-none tracking-tight text-charcoal">{display}</dd>
-      {children}
-      {trend && <div className="absolute right-4 top-5">{trend}</div>}
+      <dd className="mt-1.5">
+        <span className="block font-sans text-[2rem] font-semibold leading-none tracking-tight text-charcoal">{display}</span>
+        {children}
+        {trend && <span className="absolute right-4 top-5 block">{trend}</span>}
+      </dd>
     </div>
   );
 }

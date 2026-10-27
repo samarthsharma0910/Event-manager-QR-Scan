@@ -1,6 +1,7 @@
 import { Prisma, type CheckInMethod, type Role } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { formatInstantTime } from "@/lib/datetime";
+import { eventEnd, eventStart, formatDate, formatInstantTime, formatTime, nowWall } from "@/lib/datetime";
+import { getSettings } from "@/lib/services/settings";
 import { can } from "@/lib/permissions";
 
 export type CheckInResult =
@@ -9,6 +10,7 @@ export type CheckInResult =
   | { status: "INVALID" }
   | { status: "WRONG_EVENT"; ticketEvent: string; currentEvent: string }
   | { status: "NOT_ACTIVE"; message: string }
+  | { status: "OUTSIDE_WINDOW"; message: string }
   | { status: "CANCELLED_TICKET"; participant: string }
   | { status: "FORBIDDEN" }
   | { status: "EVENT_NOT_FOUND" };
@@ -37,7 +39,7 @@ export async function performCheckIn(req: CheckInRequest): Promise<CheckInResult
   const code = req.code.trim();
   const currentEvent = await prisma.event.findUnique({
     where: { id: req.eventId },
-    select: { id: true, title: true, status: true },
+    select: { id: true, title: true, status: true, date: true, startTime: true, endTime: true },
   });
   if (!currentEvent) return { status: "EVENT_NOT_FOUND" };
 
@@ -78,6 +80,20 @@ export async function performCheckIn(req: CheckInRequest): Promise<CheckInResult
 
   // 8 & 10. Already used?
   if (registration.attendance) return { status: "ALREADY_CHECKED_IN", ...shape(registration.attendance.checkedInAt) };
+
+  // Check-in only runs around the event itself (window set in Admin → Settings; 0 = no limit).
+  // A manual override by an admin is a deliberate decision, so it is exempt.
+  if (req.method !== "ADMIN_OVERRIDE") {
+    const hours = (await getSettings()).checkInWindowHours;
+    if (hours > 0) {
+      const now = nowWall().getTime();
+      const opens = new Date(eventStart(currentEvent).getTime() - hours * 3600000);
+      const closes = new Date(eventEnd(currentEvent).getTime() + hours * 3600000);
+      const fmt = (d: Date) => `${formatDate(d)} at ${formatTime(d.toISOString().slice(11, 16))}`;
+      if (now < opens.getTime()) return { status: "OUTSIDE_WINDOW", message: `Check-in for this event opens on ${fmt(opens)}.` };
+      if (now > closes.getTime()) return { status: "OUTSIDE_WINDOW", message: `Check-in for this event closed on ${fmt(closes)}.` };
+    }
+  }
 
   try {
     const attendance = await prisma.attendance.create({

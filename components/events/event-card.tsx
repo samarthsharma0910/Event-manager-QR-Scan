@@ -39,11 +39,12 @@ export function SeatMeter({ event, className = "" }: { event: EventView; classNa
   );
 }
 
-export function EventCard({ event, priority = false }: { event: EventView; priority?: boolean }) {
+export function EventCard({ event, priority = false, headingLevel = 3 }: { event: EventView; priority?: boolean; headingLevel?: 2 | 3 }) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const showSeats = event.state === "OPEN" || event.state === "FULL";
   return (
     <article className="group">
-      <Link href={`/events/${event.slug}`} className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-paper" aria-label={`${event.title} — view details`} tabIndex={-1}>
+      <Link href={`/events/${event.slug}`} className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-paper" aria-hidden="true" tabIndex={-1}>
         <CoverImage src={event.coverImage} alt="" seed={event.title} eager={priority} className="size-full transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
         <span className="absolute left-3 top-3">
           <DateChip date={event.date} />
@@ -58,11 +59,11 @@ export function EventCard({ event, priority = false }: { event: EventView; prior
           <span aria-hidden="true">·</span>
           <span className="truncate">{formatTime(event.startTime)}</span>
         </p>
-        <h3 className="mt-1 text-[1.3rem] font-semibold leading-snug">
+        <Heading className="mt-1 text-[1.3rem] font-semibold leading-snug">
           <Link href={`/events/${event.slug}`} className="bg-gradient-to-r from-forest to-forest bg-[length:0%_1.5px] bg-left-bottom bg-no-repeat transition-[background-size] duration-300 group-hover:bg-[length:100%_1.5px]">
             {event.title}
           </Link>
-        </h3>
+        </Heading>
         <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted">
           <Icon name="pin" className="size-4 shrink-0" />
           <span className="truncate">{event.location}</span>
@@ -81,7 +82,7 @@ export function EventCard({ event, priority = false }: { event: EventView; prior
 export function FeaturedEvent({ event }: { event: EventView }) {
   return (
     <article className="group grid overflow-hidden rounded-3xl border border-line bg-white md:grid-cols-[1.25fr_1fr]">
-      <Link href={`/events/${event.slug}`} className="relative block min-h-64 overflow-hidden bg-paper" aria-label={`${event.title} — view details`} tabIndex={-1}>
+      <Link href={`/events/${event.slug}`} className="relative block min-h-64 overflow-hidden bg-paper" aria-hidden="true" tabIndex={-1}>
         <CoverImage src={event.coverImage} alt="" seed={event.title} eager className="absolute inset-0 size-full transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
         <span className="absolute left-4 top-4">
           <DateChip date={event.date} />

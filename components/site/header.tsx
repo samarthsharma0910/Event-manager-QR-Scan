@@ -18,9 +18,9 @@ export async function SiteHeader() {
         <div className="flex items-center gap-2">
           {user ? (
             <details className="group relative">
-              <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-line-strong bg-white py-1 pl-1 pr-3 transition-colors hover:border-forest/50 [&::-webkit-details-marker]:hidden" aria-label="Account menu">
-                <span className="grid size-8 place-items-center rounded-full bg-forest text-sm font-bold text-white">{user.name[0]?.toUpperCase()}</span>
-                <span className="hidden text-sm font-semibold sm:block">{user.name.split(" ")[0]}</span>
+              <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-line-strong bg-white py-1 pl-1 pr-3 transition-colors hover:border-forest/50 [&::-webkit-details-marker]:hidden">
+                <span aria-hidden="true" className="grid size-8 place-items-center rounded-full bg-forest text-sm font-bold text-white">{user.name[0]?.toUpperCase()}</span>
+                <span className="text-sm font-semibold max-sm:sr-only">{user.name.split(" ")[0]}<span className="sr-only"> — account menu</span></span>
                 <Icon name="chevron" className="size-4 text-muted transition-transform group-open:rotate-180" />
               </summary>
               <div className="absolute right-0 mt-2 w-56 origin-top-right animate-fade rounded-xl border border-line bg-white p-1.5 shadow-[0_18px_40px_-16px_rgb(29_42_35/0.35)]">

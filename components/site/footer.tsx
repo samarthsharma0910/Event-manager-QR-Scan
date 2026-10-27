@@ -30,7 +30,7 @@ export async function SiteFooter() {
             <p className="mb-3 text-sm font-semibold text-white">Contact</p>
             {s.contactEmail && <a className={`block ${link}`} href={`mailto:${s.contactEmail}`}>{s.contactEmail}</a>}
             {s.contactPhone && <p>{s.contactPhone}</p>}
-            {s.address && <p className="max-w-[16rem] text-white/50">{s.address}</p>}
+            {s.address && <p className="max-w-[16rem] text-white/70">{s.address}</p>}
           </div>
           <div className="space-y-2.5 text-[0.9375rem]">
             <p className="mb-3 text-sm font-semibold text-white">Follow</p>
@@ -40,9 +40,13 @@ export async function SiteFooter() {
             {s.website && <a className={`block ${link}`} href={s.website} rel="noopener noreferrer" target="_blank">{s.website.replace(/^https?:\/\//, "")}</a>}
           </div>
         </div>
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/70 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {s.name}. Supporting SDG 17 — Partnerships for the Goals.</p>
-          <Link href="/admin/login" className="-my-2 inline-block py-2.5 hover:text-white/80">Staff sign-in</Link>
+          <span className="flex flex-wrap items-center gap-x-5">
+            <Link href="/privacy" className="-my-2 inline-block py-2.5 hover:text-white">Privacy</Link>
+            <Link href="/terms" className="-my-2 inline-block py-2.5 hover:text-white">Terms</Link>
+            <Link href="/admin/login" className="-my-2 inline-block py-2.5 hover:text-white">Staff sign-in</Link>
+          </span>
         </div>
       </div>
     </footer>

@@ -19,6 +19,7 @@ export const FLASH = {
   partner_saved: "Partner updated.",
   partner_removed: "Partner removed.",
   role_updated: "Role updated.",
+  account_deleted: "Your account and registrations have been deleted.",
   cancel_ok: "Your registration has been cancelled and your seat released.",
   err_event_missing: "That event no longer exists.",
   err_event_has_regs: "This event has registrations, so it can't be deleted. Cancel it instead to keep the records.",

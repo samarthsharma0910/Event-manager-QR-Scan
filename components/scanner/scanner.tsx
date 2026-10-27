@@ -252,7 +252,7 @@ function ResultSheet({ outcome, onNext }: { outcome: Outcome; onNext: () => void
   useEffect(() => ref.current?.focus(), []);
 
   const ok = outcome.status === "SUCCESS";
-  const warn = outcome.status === "ALREADY_CHECKED_IN" || outcome.status === "NOT_ACTIVE" || outcome.status === "WRONG_EVENT" || outcome.status === "CANCELLED_TICKET";
+  const warn = outcome.status === "ALREADY_CHECKED_IN" || outcome.status === "NOT_ACTIVE" || outcome.status === "OUTSIDE_WINDOW" || outcome.status === "WRONG_EVENT" || outcome.status === "CANCELLED_TICKET";
   const tone = ok ? "bg-forest text-white" : warn ? "bg-amber-soft text-amber" : "bg-danger-soft text-danger";
 
   return (
@@ -296,6 +296,7 @@ function title(o: Outcome) {
     case "WRONG_EVENT": return "Wrong event";
     case "CANCELLED_TICKET": return "Ticket cancelled";
     case "NOT_ACTIVE": return "Check-in unavailable";
+    case "OUTSIDE_WINDOW": return "Check-in not open";
     case "UNAUTHENTICATED": return "Session expired";
     case "RATE_LIMITED": return "Slow down";
     case "FORBIDDEN": return "Not allowed";
@@ -334,6 +335,7 @@ function Body({ outcome: o }: { outcome: Outcome }) {
     case "CANCELLED_TICKET":
       return <p className="text-lg">This registration was cancelled, so the ticket is no longer valid.</p>;
     case "NOT_ACTIVE":
+    case "OUTSIDE_WINDOW":
       return <p className="text-lg">{o.message}</p>;
     case "UNAUTHENTICATED":
       return (

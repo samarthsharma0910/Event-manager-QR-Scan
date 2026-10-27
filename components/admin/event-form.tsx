@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { CoverImage, SubmitButton, useSubmit } from "@/components/ui/client";
 import { Icon } from "@/components/ui/icons";
+import { ImageField } from "./image-field";
 import { Field, FormError } from "@/components/ui/server";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/lib/event-state";
 import type { ActionState } from "@/lib/validation";
@@ -76,10 +77,8 @@ export function EventForm({ mode, action: serverAction, values: v, partners, sdg
         <Field label="Description" name="description" errors={e.description} required hint="Separate paragraphs with a blank line.">
           <textarea id="description" name="description" rows={7} defaultValue={v.description} required className="input" aria-invalid={inv("description")} aria-describedby="description-error description-hint" />
         </Field>
-        <Field label="Cover image URL" name="coverImage" errors={e.coverImage} hint="A full https:// image URL, or a path such as /covers/cleanup.svg.">
-          <input id="coverImage" name="coverImage" value={cover} onChange={(ev) => setCover(ev.target.value)} className="input" aria-invalid={inv("coverImage")} aria-describedby="coverImage-error coverImage-hint" />
-        </Field>
-        {cover && <CoverImage src={cover} alt="Cover image preview" className="h-40 w-full max-w-sm rounded-xl" />}
+        <ImageField name="coverImage" label="Cover image" defaultValue={v.coverImage} hint="Shown on the event card and at the top of the event page. A wide photo works best." />
+        {e.coverImage && <p role="alert" className="field-error">{e.coverImage[0]}</p>}
       </fieldset>
 
       <fieldset className="space-y-5">

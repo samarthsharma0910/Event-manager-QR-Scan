@@ -45,7 +45,7 @@ export default async function EventsPage({ searchParams }: { searchParams: SP })
           <div className="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((e, i) => (
               <Reveal key={e.id} delay={(i % 3) * 80}>
-                <EventCard event={e} priority={i < 3} />
+                <EventCard event={e} priority={i < 3} headingLevel={2} />
               </Reveal>
             ))}
           </div>

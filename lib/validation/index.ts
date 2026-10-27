@@ -180,6 +180,12 @@ export const settingsSchema = z.object({
   instagramUrl: url,
   linkedinUrl: url,
   twitterUrl: url,
+  checkInWindowHours: z.coerce.number().int().min(0, "Use 0 or more.").max(240, "Use 240 hours or fewer."),
   primaryColor: hexColor,
   accentColor: hexColor,
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Enter your current password.").max(200),
+  newPassword: password,
 });

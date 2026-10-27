@@ -94,7 +94,7 @@ export function RegistrationForm({
       <div>
         <label className="flex items-start gap-3 rounded-xl bg-paper p-4 text-sm">
           <input type="checkbox" name="consent" required className="mt-0.5 size-5 shrink-0 accent-[var(--brand)]" aria-invalid={invalid("consent")} aria-describedby="consent-error" />
-          <span>I agree that my details may be used to manage my registration and to contact me about this event.</span>
+          <span>I agree that my details may be used to manage my registration and to contact me about this event, as described in the <a href="/privacy" target="_blank" rel="noopener" className="font-semibold text-forest underline">privacy policy</a>.</span>
         </label>
         {e.consent && (
           <p id="consent-error" role="alert" className="field-error">

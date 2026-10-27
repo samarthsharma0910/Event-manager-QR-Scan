@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { changeRoleAction } from "@/app/actions/admin";
+import { ResetPasswordForm } from "@/components/admin/reset-password";
 import { Notice, flashParams } from "@/components/ui/server";
 import { ActionForm, SubmitButton } from "@/components/ui/client";
 import { requirePermission } from "@/lib/auth/session";
@@ -49,6 +50,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
                 <SubmitButton pending="Saving…" className="btn-secondary btn-sm">Update</SubmitButton>
               </ActionForm>
             )}
+            {u.id !== me.id && <ResetPasswordForm userId={u.id} name={u.name} />}
           </li>
         ))}
         {!users.length && <li className="p-6 text-center text-muted">No users found.</li>}

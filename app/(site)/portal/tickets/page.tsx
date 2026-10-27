@@ -33,7 +33,6 @@ export default async function TicketsPage({ searchParams }: { searchParams: Prom
                   <Link
                     href={`/portal/tickets/${r.id}`}
                     className="lift group relative flex overflow-hidden rounded-2xl border border-line bg-white"
-                    aria-label={`Open ticket for ${r.event.title}`}
                   >
                     <div className="relative hidden w-32 shrink-0 sm:block">
                       <CoverImage src={r.event.coverImage} alt="" seed={r.event.title} className="absolute inset-0 size-full transition-transform duration-500 group-hover:scale-105" />

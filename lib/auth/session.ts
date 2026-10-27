@@ -15,6 +15,7 @@ export type CurrentUser = {
   organization: string | null;
   city: string | null;
   image: string | null;
+  emailVerifiedAt: Date | null;
 };
 
 export async function startSession(userId: string, role: Role) {
@@ -39,10 +40,15 @@ export async function endSession() {
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const claims = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!claims) return null;
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: claims.sub },
-    select: { id: true, name: true, email: true, role: true, phone: true, organization: true, city: true, image: true },
+    select: { id: true, name: true, email: true, role: true, phone: true, organization: true, city: true, image: true, emailVerifiedAt: true, sessionsValidAfter: true },
   });
+  if (!user) return null;
+  // A password change/reset signs out every older session on every device.
+  if (user.sessionsValidAfter && claims.iat * 1000 < user.sessionsValidAfter.getTime()) return null;
+  const { sessionsValidAfter: _s, ...safe } = user;
+  return safe;
 });
 
 export class AuthError extends Error {
